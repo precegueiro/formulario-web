@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Ocorrência</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+      color: #34495e;
+    }
+
+    select, textarea, input[type="text"], input[type="file"], button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      background: #3498db;
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    .location-fields {
+      display: flex;
+      gap: 10px;
+    }
+
+    .small-input {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Cadastro de Ocorrência</h2>
+
+    <form id="meuFormulario">
+      <!-- ESTADO -->
+      <label for="estado">Estado:</label>
+      <select id="estado" name="estado" required>
+        <option value="">Carregando estados...</option>
+      </select>
+
+      <!-- CIDADE -->
+      <label for="cidade">Cidade:</label>
+      <select id="cidade" name="cidade" required>
+        <option value="">Selecione um estado primeiro...</option>
+      </select>
+
+      <!-- UNIDADE (fixa) -->
+      <label for="unidade">Unidade:</label>
+      <select id="unidade" name="unidade" required>
+        <option value="">Selecione...</option>
+        <option value="Águas do Rio">Águas do Rio</option>
+        <option value="Águas de Manaus">Águas de Manaus</option>
+      </select>
+
+      <!-- TEXTO -->
+      <label for="descricao">Descrição (até 4000 caracteres):</label>
+      <textarea id="descricao" name="descricao" maxlength="4000" rows="6" required></textarea>
+
+      <!-- LOCALIZAÇÃO -->
+      <label>Localização:</label>
+      <div class="location-fields">
+        <input type="text" id="latitude" name="latitude" placeholder="Latitude" class="small-input" readonly>
+        <input type="text" id="longitude" name="longitude" placeholder="Longitude" class="small-input" readonly>
+      </div>
+      <button type="button" onclick="pegarLocalizacao()">📍 Obter Localização</button>
+
+      <!-- FOTOS -->
+      <label for="fotos">Fotos:</label>
+      <input type="file" id="fotos" name="fotos" accept="image/*" multiple>
+
+      <button type="submit">🚀 Enviar</button>
+    </form>
+  </div>
+
+  <script>
+    // --- CARREGAR ESTADOS DO IBGE ---
+    async function carregarEstados() {
+      let selectEstado = document.getElementById("estado");
+      selectEstado.innerHTML = "<option value=''>Selecione...</option>";
+
+      try {
+        let resp = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome");
+        let estados = await resp.json();
+
+        estados.forEach(e => {
+          let option = document.createElement("option");
+          option.value = e.sigla;
+          option.textContent = e.nome;
+          selectEstado.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar estados", err);
+      }
+    }
+
+    // --- CARREGAR CIDADES DO IBGE ---
+    async function carregarCidades(uf) {
+      let selectCidade = document.getElementById("cidade");
+      selectCidade.innerHTML = "<option value=''>Carregando...</option>";
+
+      try {
+        let resp = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+        let cidades = await resp.json();
+
+        selectCidade.innerHTML = "<option value=''>Selecione...</option>";
+        cidades.forEach(c => {
+          let option = document.createElement("option");
+          option.value = c.nome;
+          option.textContent = c.nome;
+          selectCidade.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar cidades", err);
+      }
+    }
+
+    // Eventos de seleção
+    document.getElementById("estado").addEventListener("change", function() {
+      if(this.value) carregarCidades(this.value);
+    });
+
+    // --- PEGAR LOCALIZAÇÃO ---
+    function pegarLocalizacao() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          document.getElementById("latitude").value = pos.coords.latitude;
+          document.getElementById("longitude").value = pos.coords.longitude;
+        }, function() {
+          alert("Não foi possível obter a localização.");
+        });
+      } else {
+        alert("Geolocalização não suportada neste navegador.");
+      }
+    }
+
+    // --- ENVIO DO FORMULÁRIO ---
+    document.getElementById("meuFormulario").addEventListener("submit", async function(event){
+      event.preventDefault();
+
+      let formData = new FormData(this);
+
+      try {
+        let resposta = await fetch("https://sua-api-aqui.com/enviar", {
+          method: "POST",
+          body: formData
+        });
+
+        if(resposta.ok){
+          alert("✅ Enviado com sucesso!");
+          this.reset();
+        } else {
+          alert("❌ Erro ao enviar.");
+        }
+      } catch (erro) {
+        console.error(erro);
+        alert("⚠️ Falha de conexão.");
+      }
+    });
+
+    // Carregar estados ao abrir a página
+    carregarEstados();
+  </script>
+</body>
+</html>
