@@ -289,4 +289,78 @@
             // });
 
             // if(resposta.ok){
-            //
+            //   alert("✅ Enviado com sucesso!");
+            //   this.reset();
+            //   previewContainer.innerHTML = '';
+            //   fileStore = [];
+            // } else {
+            //   alert("❌ Erro ao enviar.");
+            // }
+
+            // Simulação de sucesso para teste
+            alert("✅ Simulação de Envio com sucesso!");
+            this.reset();
+            previewContainer.innerHTML = ''; // Limpa as miniaturas
+            fileStore = []; // Limpa nosso array de arquivos
+
+        } catch (erro) {
+            console.error(erro);
+            alert("⚠️ Falha de conexão.");
+        }
+    });
+
+    // --- Colando as funções que não foram alteradas para o código ficar completo ---
+    async function carregarEstados() {
+      let selectEstado = document.getElementById("estado");
+      selectEstado.innerHTML = "<option value=''>Selecione...</option>";
+
+      try {
+        let resp = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome");
+        let estados = await resp.json();
+
+        estados.forEach(e => {
+          let option = document.createElement("option");
+          option.value = e.sigla;
+          option.textContent = e.nome;
+          selectEstado.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar estados", err);
+      }
+    }
+
+    async function carregarCidades(uf) {
+      let selectCidade = document.getElementById("cidade");
+      selectCidade.innerHTML = "<option value=''>Carregando...</option>";
+
+      try {
+        let resp = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+        let cidades = await resp.json();
+
+        selectCidade.innerHTML = "<option value=''>Selecione...</option>";
+        cidades.forEach(c => {
+          let option = document.createElement("option");
+          option.value = c.nome;
+          option.textContent = c.nome;
+          selectCidade.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar cidades", err);
+      }
+    }
+
+    function pegarLocalizacao() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          document.getElementById("latitude").value = pos.coords.latitude;
+          document.getElementById("longitude").value = pos.coords.longitude;
+        }, function() {
+          alert("Não foi possível obter a localização.");
+        });
+      } else {
+        alert("Geolocalização não suportada neste navegador.");
+      }
+    }
+  </script>
+</body>
+</html>
