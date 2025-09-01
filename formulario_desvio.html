@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastro de Ocorrência</title>
   <style>
     body {
@@ -10,7 +11,8 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 40px;
+      padding: 20px; /* Padding reduzido para telas menores */
+      margin: 0;
     }
 
     .container {
@@ -20,6 +22,7 @@
       max-width: 600px;
       width: 100%;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-sizing: border-box; /* Garante que padding não afete a largura total */
     }
 
     h2 {
@@ -37,11 +40,12 @@
 
     select, textarea, input[type="text"], input[type="file"], button {
       width: 100%;
-      padding: 10px;
+      padding: 12px; /* Aumenta a área de clique */
       margin-bottom: 15px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 14px;
+      font-size: 16px; /* Melhora a legibilidade e evita zoom no iOS */
+      box-sizing: border-box; /* Garante que padding não afete a largura total */
     }
 
     textarea {
@@ -55,6 +59,7 @@
       font-weight: bold;
       cursor: pointer;
       transition: 0.3s;
+      padding: 15px; /* Botões mais fáceis de tocar */
     }
 
     button:hover {
@@ -64,6 +69,17 @@
     .location-fields {
       display: flex;
       gap: 10px;
+      flex-direction: column; /* Começa como coluna para mobile */
+    }
+
+    /* Estilos para telas maiores (desktop) */
+    @media (min-width: 601px) {
+      .location-fields {
+        flex-direction: row; /* Volta a ser lado a lado em telas maiores */
+      }
+      body {
+        padding: 40px; /* Restaura o padding original */
+      }
     }
 
     .small-input {
@@ -76,19 +92,16 @@
     <h2>Cadastro de Ocorrência</h2>
 
     <form id="meuFormulario">
-      <!-- ESTADO -->
       <label for="estado">Estado:</label>
       <select id="estado" name="estado" required>
         <option value="">Carregando estados...</option>
       </select>
 
-      <!-- CIDADE -->
       <label for="cidade">Cidade:</label>
       <select id="cidade" name="cidade" required>
         <option value="">Selecione um estado primeiro...</option>
       </select>
 
-      <!-- UNIDADE (fixa) -->
       <label for="unidade">Unidade:</label>
       <select id="unidade" name="unidade" required>
         <option value="">Selecione...</option>
@@ -96,11 +109,9 @@
         <option value="Águas de Manaus">Águas de Manaus</option>
       </select>
 
-      <!-- TEXTO -->
       <label for="descricao">Descrição (até 4000 caracteres):</label>
       <textarea id="descricao" name="descricao" maxlength="4000" rows="6" required></textarea>
 
-      <!-- LOCALIZAÇÃO -->
       <label>Localização:</label>
       <div class="location-fields">
         <input type="text" id="latitude" name="latitude" placeholder="Latitude" class="small-input" readonly>
@@ -108,7 +119,6 @@
       </div>
       <button type="button" onclick="pegarLocalizacao()">📍 Obter Localização</button>
 
-      <!-- FOTOS -->
       <label for="fotos">Fotos:</label>
       <input type="file" id="fotos" name="fotos" accept="image/*" multiple>
 
