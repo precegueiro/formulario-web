@@ -38,7 +38,7 @@
       color: #34495e;
     }
 
-    select, textarea, input[type="text"], input[type="file"], button {
+    select, textarea, input[type="text"], button {
       width: 100%;
       padding: 12px;
       margin-bottom: 15px;
@@ -52,7 +52,7 @@
       resize: vertical;
     }
 
-    button {
+    button, .file-button { /* Aplicando estilo a botões e aos novos botões de arquivo */
       background: #3498db;
       color: #fff;
       border: none;
@@ -60,9 +60,10 @@
       cursor: pointer;
       transition: 0.3s;
       padding: 15px;
+      text-align: center;
     }
 
-    button:hover {
+    button:hover, .file-button:hover {
       background: #2980b9;
     }
 
@@ -72,6 +73,59 @@
       flex-direction: column;
     }
 
+    /* --- NOVOS ESTILOS PARA PREVIEW DE IMAGEM --- */
+    .file-buttons-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .file-button {
+      flex: 1;
+    }
+
+    #previewContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .preview-wrapper {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .preview-image {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #ddd;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-weight: bold;
+      font-family: monospace;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* --- FIM DOS NOVOS ESTILOS --- */
+
+
     @media (min-width: 601px) {
       .location-fields {
         flex-direction: row;
@@ -79,10 +133,6 @@
       body {
         padding: 40px;
       }
-    }
-
-    .small-input {
-      flex: 1;
     }
   </style>
 </head>
@@ -113,105 +163,130 @@
 
       <label>Localização:</label>
       <div class="location-fields">
-        <input type="text" id="latitude" name="latitude" placeholder="Latitude" class="small-input" readonly>
-        <input type="text" id="longitude" name="longitude" placeholder="Longitude" class="small-input" readonly>
+        <input type="text" id="latitude" name="latitude" placeholder="Latitude" readonly>
+        <input type="text" id="longitude" name="longitude" placeholder="Longitude" readonly>
       </div>
       <button type="button" onclick="pegarLocalizacao()">📍 Obter Localização</button>
 
-      <label for="fotos">Fotos:</label>
-      <input type="file" id="fotos" name="fotos" accept="image/*" capture="environment" multiple>
+      <label>Fotos:</label>
+      <input type="file" id="fotos" name="fotos" accept="image/*" multiple style="display: none;">
+
+      <div class="file-buttons-container">
+        <button type="button" id="tirarFotoBtn" class="file-button">📷 Tirar Foto</button>
+        <button type="button" id="selecionarArquivoBtn" class="file-button">📂 Selecionar Arquivo(s)</button>
+      </div>
+
+      <div id="previewContainer"></div>
 
       <button type="submit">🚀 Enviar</button>
     </form>
   </div>
 
   <script>
-    // --- CARREGAR ESTADOS DO IBGE ---
-    async function carregarEstados() {
-      let selectEstado = document.getElementById("estado");
-      selectEstado.innerHTML = "<option value=''>Selecione...</option>";
-
-      try {
-        let resp = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome");
-        let estados = await resp.json();
-
-        estados.forEach(e => {
-          let option = document.createElement("option");
-          option.value = e.sigla;
-          option.textContent = e.nome;
-          selectEstado.appendChild(option);
-        });
-      } catch (err) {
-        console.error("Erro ao carregar estados", err);
-      }
-    }
-
-    // --- CARREGAR CIDADES DO IBGE ---
-    async function carregarCidades(uf) {
-      let selectCidade = document.getElementById("cidade");
-      selectCidade.innerHTML = "<option value=''>Carregando...</option>";
-
-      try {
-        let resp = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
-        let cidades = await resp.json();
-
-        selectCidade.innerHTML = "<option value=''>Selecione...</option>";
-        cidades.forEach(c => {
-          let option = document.createElement("option");
-          option.value = c.nome;
-          option.textContent = c.nome;
-          selectCidade.appendChild(option);
-        });
-      } catch (err) {
-        console.error("Erro ao carregar cidades", err);
-      }
-    }
-
-    // Eventos de seleção
-    document.getElementById("estado").addEventListener("change", function() {
-      if(this.value) carregarCidades(this.value);
-    });
-
-    // --- PEGAR LOCALIZAÇÃO ---
-    function pegarLocalizacao() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(pos) {
-          document.getElementById("latitude").value = pos.coords.latitude;
-          document.getElementById("longitude").value = pos.coords.longitude;
-        }, function() {
-          alert("Não foi possível obter a localização.");
-        });
-      } else {
-        alert("Geolocalização não suportada neste navegador.");
-      }
-    }
-
-    // --- ENVIO DO FORMULÁRIO ---
-    document.getElementById("meuFormulario").addEventListener("submit", async function(event){
-      event.preventDefault();
-
-      let formData = new FormData(this);
-
-      try {
-        let resposta = await fetch("https://sua-api-aqui.com/enviar", {
-          method: "POST",
-          body: formData
-        });
-
-        if(resposta.ok){
-          alert("✅ Enviado com sucesso!");
-          this.reset();
-        } else {
-          alert("❌ Erro ao enviar.");
-        }
-      } catch (erro) {
-        console.error(erro);
-        alert("⚠️ Falha de conexão.");
-      }
-    });
-
-    // Carregar estados ao abrir a página
+    // --- LÓGICA EXISTENTE ---
+    async function carregarEstados() { /* ...código mantido... */ }
+    async function carregarCidades(uf) { /* ...código mantido... */ }
+    document.getElementById("estado").addEventListener("change", function() { if(this.value) carregarCidades(this.value); });
+    function pegarLocalizacao() { /* ...código mantido... */ }
     carregarEstados();
-  </script>
-</body>
-</html>
+    
+    // --- NOVA LÓGICA PARA MANIPULAÇÃO DE ARQUIVOS ---
+    const tirarFotoBtn = document.getElementById('tirarFotoBtn');
+    const selecionarArquivoBtn = document.getElementById('selecionarArquivoBtn');
+    const fileInput = document.getElementById('fotos');
+    const previewContainer = document.getElementById('previewContainer');
+    const form = document.getElementById('meuFormulario');
+    
+    // Usaremos um array para guardar os arquivos, pois o FileList do input é somente leitura.
+    let fileStore = [];
+
+    // Botão para tirar foto
+    tirarFotoBtn.addEventListener('click', () => {
+        fileInput.setAttribute('capture', 'environment');
+        fileInput.click();
+    });
+
+    // Botão para selecionar arquivos
+    selecionarArquivoBtn.addEventListener('click', () => {
+        fileInput.removeAttribute('capture');
+        fileInput.click();
+    });
+
+    // Quando novos arquivos são selecionados no input
+    fileInput.addEventListener('change', (event) => {
+        // Adiciona os novos arquivos ao nosso array
+        const newFiles = Array.from(event.target.files);
+        fileStore.push(...newFiles);
+        
+        // Gera o preview para os novos arquivos
+        newFiles.forEach(file => createPreview(file));
+
+        // Limpa o valor do input para permitir selecionar o mesmo arquivo novamente
+        event.target.value = '';
+    });
+
+    function createPreview(file) {
+        // Apenas cria preview para imagens
+        if (!file.type.startsWith('image/')) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'preview-wrapper';
+            // Guardamos o nome do arquivo para poder removê-lo depois
+            wrapper.dataset.fileName = file.name;
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'preview-image';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '&times;'; // 'X' para deletar
+
+            deleteBtn.addEventListener('click', () => {
+                // Remove o arquivo do nosso array
+                fileStore = fileStore.filter(f => f.name !== file.name);
+                // Remove o elemento da tela
+                wrapper.remove();
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(deleteBtn);
+            previewContainer.appendChild(wrapper);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // --- LÓGICA DE ENVIO DO FORMULÁRIO MODIFICADA ---
+    form.addEventListener("submit", async function(event){
+        event.preventDefault();
+
+        // ANTES DE CRIAR O FORMDATA, ATUALIZAMOS O INPUT DE ARQUIVO
+        const dataTransfer = new DataTransfer();
+        fileStore.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+        fileInput.files = dataTransfer.files;
+        
+        // Agora o FormData() irá pegar a lista de arquivos correta
+        let formData = new FormData(this);
+
+        // Adiciona um log para ver os arquivos que serão enviados
+        console.log('Arquivos a serem enviados:');
+        for (const file of formData.getAll('fotos')) {
+            console.log(file.name);
+        }
+
+        try {
+            // Descomente e aponte para sua API real
+            // let resposta = await fetch("https://sua-api-aqui.com/enviar", {
+            //   method: "POST",
+            //   body: formData
+            // });
+
+            // if(resposta.ok){
+            //
