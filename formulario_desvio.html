@@ -11,7 +11,7 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 20px; /* Padding reduzido para telas menores */
+      padding: 20px;
       margin: 0;
     }
 
@@ -22,7 +22,7 @@
       max-width: 600px;
       width: 100%;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      box-sizing: border-box; /* Garante que padding não afete a largura total */
+      box-sizing: border-box;
     }
 
     h2 {
@@ -40,12 +40,12 @@
 
     select, textarea, input[type="text"], input[type="file"], button {
       width: 100%;
-      padding: 12px; /* Aumenta a área de clique */
+      padding: 12px;
       margin-bottom: 15px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 16px; /* Melhora a legibilidade e evita zoom no iOS */
-      box-sizing: border-box; /* Garante que padding não afete a largura total */
+      font-size: 16px;
+      box-sizing: border-box;
     }
 
     textarea {
@@ -59,7 +59,7 @@
       font-weight: bold;
       cursor: pointer;
       transition: 0.3s;
-      padding: 15px; /* Botões mais fáceis de tocar */
+      padding: 15px;
     }
 
     button:hover {
@@ -69,16 +69,15 @@
     .location-fields {
       display: flex;
       gap: 10px;
-      flex-direction: column; /* Começa como coluna para mobile */
+      flex-direction: column;
     }
 
-    /* Estilos para telas maiores (desktop) */
     @media (min-width: 601px) {
       .location-fields {
-        flex-direction: row; /* Volta a ser lado a lado em telas maiores */
+        flex-direction: row;
       }
       body {
-        padding: 40px; /* Restaura o padding original */
+        padding: 40px;
       }
     }
 
@@ -120,7 +119,7 @@
       <button type="button" onclick="pegarLocalizacao()">📍 Obter Localização</button>
 
       <label for="fotos">Fotos:</label>
-      <input type="file" id="fotos" name="fotos" accept="image/*" multiple>
+      <input type="file" id="fotos" name="fotos" accept="image/*" capture="environment" multiple>
 
       <button type="submit">🚀 Enviar</button>
     </form>
